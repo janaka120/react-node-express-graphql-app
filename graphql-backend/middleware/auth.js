@@ -5,24 +5,22 @@ const { JetTokenSecret } = require('../utils/constant');
 module.exports = (req, res, next) => {
     const authHeader = req.get('Authorization');
     if(!authHeader) {
-        const err = new Error('Not authenticated');
-        err.status = 401;
-        throw err;
+        req.isAuth = false;
+        return next();
     }
     const token = authHeader.split(' ')[1];
     let decodeedToken;
     try {
         decodeedToken  = jwt.verify(token, JetTokenSecret)
     }catch(error) {
-        console.log("is auth error >>>", error);
-        error.status = 500;
-        throw error;
+        req.isAuth = false;
+        return next();
     }
     if(!decodeedToken) {
-        const err = new Error('Not authenticated');
-        err.status = 401;
-        throw err;
+        req.isAuth = false;
+        return next();
     }
     req.userId = decodeedToken.userId;
+    req.isAuth = true;
     next();
 }
